@@ -1,0 +1,227 @@
+Question 1: Reverse List by N Elements
+
+from typing import List
+import pandas as pd
+
+def reverse_by_n_elements(lst: List[int], n: int) -> List[int]:
+    """
+    Reverses the input list by groups of n elements.
+    """
+    result = []
+    length = len(lst)
+
+    for i in range(0, length, n):
+        # Get the current group of n elements
+        group = lst[i:i+n]
+        # Reverse the group without using slicing or built-in reverse
+        reversed_group = []
+        for j in range(len(group)):
+            reversed_group.append(group[len(group) - 1 - j])
+        # Add the reversed group to the result
+        result.extend(reversed_group)
+
+    return result
+
+
+
+Question 2: Lists & Dictionaries
+
+from typing import List, Dict
+
+def group_by_length(lst: List[str]) -> Dict[int, List[str]]:
+    """
+    Groups the strings by their length and returns a dictionary.
+    """
+    length_dict = {}
+
+    # Group strings by their lengths
+    for string in lst:
+        length = len(string)
+        if length not in length_dict:
+            length_dict[length] = []
+        length_dict[length].append(string)
+    
+    # Sort the dictionary by keys (lengths)
+    sorted_dict = dict(sorted(length_dict.items()))
+    
+    return sorted_dict
+
+
+
+Question 3: Flatten a Nested Dictionary
+
+from typing import Dict, Any
+
+def flatten_dict(nested_dict: Dict[str, Any], sep: str = '.') -> Dict[str, Any]:
+    """
+    Flattens a nested dictionary into a single-level dictionary with dot notation for keys.
+    
+   // param nested_dict: The dictionary object to flatten
+    //param sep: The separator to use between parent and child keys (defaults to '.')
+    //return: A flattened dictionary
+    """
+    def _flatten(current, parent_key=''):
+        items = []
+        if isinstance(current, dict):
+            for k, v in current.items():
+                new_key = f"{parent_key}{sep}{k}" if parent_key else k
+                items.extend(_flatten(v, new_key).items())
+        elif isinstance(current, list):
+            for i, v in enumerate(current):
+                new_key = f"{parent_key}[{i}]"
+                items.extend(_flatten(v, new_key).items())
+        else:
+            items.append((parent_key, current))
+        return dict(items)
+
+
+Question 4: Generate Unique Permutations
+
+from typing import List
+from itertools import permutations
+
+def unique_permutations(nums: List[int]) -> List[List[int]]:
+    """
+    //Generate all unique permutations of a list that may contain duplicates.
+    
+   //param nums: List of integers (may contain duplicates)
+    //return: List of unique permutations
+    """
+    # Generate all permutations and convert to a set to remove duplicates
+    perm_set = set(permutations(nums))
+    
+    # Convert each tuple back to a list and return the result
+    return [list(perm) for perm in perm_set]
+
+# Example usage
+input_nums = [1, 1, 2]
+result = unique_permutations(input_nums)
+print(result)
+
+
+Question 5: Find All Dates in a Text
+import re
+from typing import List
+
+def find_all_dates(text: str) -> List[str]:
+    """
+    This function takes a string as input and returns a list of valid dates
+    in 'dd-mm-yyyy', 'mm/dd/yyyy', or 'yyyy.mm.dd' format found in the string.
+    
+    Parameters:
+    text (str): A string containing the dates in various formats.
+
+    Returns:
+    List[str]: A list of valid dates in the formats specified.
+    """
+    # Regular expression patterns for the three date formats
+    date_patterns = [
+        r'\b\d{2}-\d{2}-\d{4}\b',  # dd-mm-yyyy
+        r'\b\d{2}/\d{2}/\d{4}\b',  # mm/dd/yyyy
+        r'\b\d{4}\.\d{2}\.\d{2}\b'  # yyyy.mm.dd
+    ]
+    
+    # Compile the patterns into a single regex and search for all matches
+    combined_pattern = '|'.join(date_patterns)
+    matches = re.findall(combined_pattern, text)
+    
+    return matches
+
+
+Question 6: Decode Polyline, Convert to DataFrame with Distances
+
+import polyline
+import pandas as pd
+from math import radians, sin, cos, sqrt, atan2
+
+def haversine(lat1, lon1, lat2, lon2):
+    """
+    Calculate the great-circle distance between two points on the Earth using the Haversine formula.
+    
+    Args:
+        lat1, lon1: Latitude and Longitude of the first point.
+        lat2, lon2: Latitude and Longitude of the second point.
+    
+    Returns:
+        Distance in meters between the two points.
+    """
+    R = 6371000  # Radius of Earth in meters
+    phi1, phi2 = radians(lat1), radians(lat2)
+    delta_phi = radians(lat2 - lat1)
+    delta_lambda = radians(lon2 - lon1)
+
+    a = sin(delta_phi / 2) ** 2 + cos(phi1) * cos(phi2) * sin(delta_lambda / 2) ** 2
+    c = 2 * atan2(sqrt(a), sqrt(1 - a))
+
+    return R * c
+
+def polyline_to_dataframe(polyline_str: str) -> pd.DataFrame:
+    """
+    Converts a polyline string into a DataFrame with latitude, longitude, and distance between consecutive points.
+    
+    Args:
+        polyline_str (str): The encoded polyline string.
+
+    Returns:
+        pd.DataFrame: A DataFrame containing latitude, longitude, and distance in meters.
+    """
+    # Decode the polyline into a list of (latitude, longitude) tuples
+    coordinates = polyline.decode(polyline_str)
+    
+    # Create a DataFrame from the coordinates
+    df = pd.DataFrame(coordinates, columns=['latitude', 'longitude'])
+    
+    # Initialize a distance column with 0 for the first point
+    distances = [0]
+    
+    # Calculate the distance between consecutive points using the Haversine formula
+    for i in range(1, len(df)):
+        lat1, lon1 = df.loc[i - 1, ['latitude', 'longitude']]
+        lat2, lon2 = df.loc[i, ['latitude', 'longitude']]
+        distance = haversine(lat1, lon1, lat2, lon2)
+        distances.append(distance)
+    
+    # Add the distance column to the DataFrame
+    df['distance'] = distances
+    
+    return df
+
+
+
+Question 7: Matrix Rotation and Transformation
+
+import numpy as np
+
+def rotate_and_transform(matrix):
+    """
+    Rotate the matrix by 90 degrees clockwise, then for each element in the rotated matrix,
+    replace it with the sum of all elements in the same row and column, excluding itself.
+    
+    Args:
+        matrix (List[List[int]]): A square matrix (n x n).
+    
+    Returns:
+        List[List[int]]: The transformed matrix.
+    """
+    # Step 1: Rotate the matrix 90 degrees clockwise
+    n = len(matrix)
+    rotated_matrix = [[matrix[n - j - 1][i] for j in range(n)] for i in range(n)]
+    
+    # Step 2: Replace each element with the sum of all elements in its row and column, excluding itself
+    final_matrix = np.zeros((n, n), dtype=int)
+    
+    for i in range(n):
+        for j in range(n):
+            # Sum all elements in row `i`
+            row_sum = sum(rotated_matrix[i])
+            # Sum all elements in column `j`
+            col_sum = sum(rotated_matrix[k][j] for k in range(n))
+            # Subtract the current element to exclude it from both sums
+            final_matrix[i][j] = row_sum + col_sum - rotated_matrix[i][j]
+    
+    return final_matrix.tolist()
+
+result = rotate_and_transform(matrix)
+print(result)
+
+Question 8: Time Check
